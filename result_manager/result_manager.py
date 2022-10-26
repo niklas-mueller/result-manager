@@ -24,6 +24,26 @@ class ResultManager():
         if self.verbose:
             print(string)
 
+    def save_dataset_description(self, trainloader:torch.utils.data.DataLoader, valloader:torch.utils.data.DataLoader, testloader:torch.utils.data.DataLoader, overwrite=False):
+        dataset_decription = {}
+        
+        for name, _set in zip(['train', 'val', 'test'], [trainloader, valloader, testloader]):
+            dataset_decription[name] = {'n_samples': len(_set.dataset), 'batch_size': _set.batch_size, 'num_workers': _set.num_workers,
+            'transform': _set.dataset.transform, 'class_mapping': _set.dataset.class_index_mapping, 'image_size': trainloader.dataset[0][0].shape}
+
+        self.save_result(result = dataset_decription, filename='dataset_description.yml', overwrite=overwrite)
+
+
+    def save_model_description(self, model:torch.nn.Module, optimizer='', criterion='', input_channels=0, output_channels=0, overwrite=False):
+        if isinstance(model, torch.nn.DataParallel):
+            model = model.module
+        model_description = {'model_class': type(model), 'model': model, 'optimizer': optimizer, 'criterion': criterion, 
+                        'input_channels': input_channels, 'output_channels': output_channels, 
+                        }
+
+        self.save_result(result = model_description, filename='model_description.yml', overwrite=overwrite)
+
+
 
     def save_model(self, model, filename:str, path:str=None, overwrite:bool=False):
         if path is None:
@@ -44,11 +64,14 @@ class ResultManager():
         if path is None:
             path = self.root
         
+        if not overwrite and os.path.exists(os.path.join(path, filename)):
+            name, ending = filename.split('.')
+            filename = f"{name}_1.{ending}"
+            # return
+            self._print(f"File exist and will instead be written as {filename}")
+            
         path = os.path.join(path, filename)
 
-        if not overwrite and os.path.exists(path):
-            self._print(f"Result file {path} already exists and will not be overwritten!")
-            return
 
         if type(result) == np.ndarray:
             np.savetxt(path, result)
