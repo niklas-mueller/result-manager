@@ -51,9 +51,11 @@ class ResultManager():
         
         path = os.path.join(path, filename)
 
-        if not overwrite and os.path.exists(path):
-            self._print(f"Result file {path} already exists and will not be overwritten!")
-            return
+        if not overwrite and os.path.exists(os.path.join(path, filename)):
+            name, ending = filename.split('.')
+            filename = f"{name}_1.{ending}"
+            # return
+            self._print(f"File exist and will instead be written as {filename}")
 
         torch.save(model.state_dict(), path)
 
