@@ -33,7 +33,6 @@ class ResultManager():
 
         self.save_result(result = dataset_decription, filename='dataset_description.yml', overwrite=overwrite)
 
-
     def save_model_description(self, model:torch.nn.Module, optimizer='', criterion='', input_channels=0, output_channels=0, overwrite=False):
         if isinstance(model, torch.nn.DataParallel):
             model = model.module
@@ -42,8 +41,6 @@ class ResultManager():
                         }
 
         self.save_result(result = model_description, filename='model_description.yml', overwrite=overwrite)
-
-
 
     def save_model(self, model, filename:str, path:str=None, overwrite:bool=False):
         if path is None:
@@ -104,7 +101,10 @@ class ResultManager():
             return None
 
         with open(path, 'rb') as f:
-            result = dill.load(f)
+            if path.endswith('.yaml') or path.endswith('.yml'):
+                result = yaml.load(f, Loader=yaml.UnsafeLoader)
+            else:
+                result = dill.load(f)
 
         return result
 
