@@ -1,4 +1,5 @@
 import os
+import csv
 import dill
 import matplotlib
 import numpy as np
@@ -67,7 +68,9 @@ class ResultManager():
             path = self.root
         
         if not overwrite and os.path.exists(os.path.join(path, filename)):
-            name, ending = filename.split('.')
+            s = filename.split('.')
+            name = "".join(s[:-1])
+            ending = s[-1]
             filename = f"{name}_1.{ending}"
             # return
             self._print(f"File exist and will instead be written as {filename}")
@@ -76,16 +79,27 @@ class ResultManager():
 
 
         if type(result) == np.ndarray:
-            np.savetxt(path, result)
-
+            if result.ndim < 3:
+                np.savetxt(path, result)
+            else:
+                np.save(path, result, allow_pickle=False)
+        
         elif type(result) == pd.DataFrame:
             result: pd.DataFrame
             pd.to_pickle(obj=result, filepath_or_buffer=path)
+        
         elif filename.endswith('.yml') or filename.endswith('yaml'):
             with open(path, 'w') as stream:
                 yaml.dump(data=result, stream=stream)
+        
+        elif filename.endswith('.csv'):
+            with open(path, 'w+') as stream:
+                writer = csv.writer(stream, delimiter='\t')
+                writer.writerows(result)
+        
         elif issubclass(type(result), torch.nn.Module):
             return self.save_model(model=result, filename=filename, path=path, overwrite=overwrite)
+        
         else:
             with open(path, 'wb+') as f:
                 dill.dump(result, f)
@@ -103,8 +117,11 @@ class ResultManager():
             self._print(f"Result file {path} not found.")
             return None
 
-        with open(path, 'rb') as f:
-            result = dill.load(f)
+        if path.endswith('.npy'):
+            result = np.load(path)
+        else:
+            with open(path, 'rb') as f:
+                result = dill.load(f)
 
         return result
 
