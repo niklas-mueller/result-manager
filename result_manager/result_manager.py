@@ -125,7 +125,7 @@ class ResultManager():
 
         return result
 
-    def save_pdf(self, figs:list, filename:str, path:str=None):
+    def save_pdf(self, figs:list, filename:str, path:str=None, dpi=None):
         if path is None:
             path = self.root
         
@@ -134,7 +134,7 @@ class ResultManager():
         pdf = matplotlib.backends.backend_pdf.PdfPages(path)
 
         for fig in figs:
-            pdf.savefig(fig)
+            pdf.savefig(fig, dpi=dpi)
 
         pdf.close()
 
