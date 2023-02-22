@@ -75,11 +75,14 @@ class ResultManager():
         path = os.path.join(path, filename)
 
 
-        if type(result) == np.ndarray:
-            if result.ndim < 3:
+        if type(result) == np.ndarray or (type(result) == dict and type(result[list(result.keys())[0]]) == np.ndarray and (path.endswith('.npz') or path.endswith('.npy'))):
+            if type(result) == np.ndarray and result.ndim < 3:
                 np.savetxt(path, result)
             else:
-                np.save(path, result, allow_pickle=False)
+                if path.endswith('.npz'):
+                    np.savez_compressed(path, **result)
+                else:
+                    np.save(path, result, allow_pickle=False)
         
         elif type(result) == pd.DataFrame:
             result: pd.DataFrame
@@ -103,7 +106,7 @@ class ResultManager():
 
         self._print(f"Result successfully saved to {path}!")
 
-    def load_result(self, filename:str, path:str=None):
+    def load_result(self, filename:str, path:str=None, allow_pickle:bool=True):
 
         if path is None:
             path = self.root
@@ -114,8 +117,8 @@ class ResultManager():
             self._print(f"Result file {path} not found.")
             return None
 
-        if path.endswith('.npy'):
-            result = np.load(path)
+        if path.endswith('.npy') or path.endswith('.npz'):
+            result = np.load(path, allow_pickle=allow_pickle)
         elif path.endswith('.yaml') or path.endswith('.yml'):
             with open(path, 'rb') as f:
                 result = yaml.load(f, Loader=yaml.UnsafeLoader)
