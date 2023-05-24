@@ -75,11 +75,14 @@ class ResultManager():
         path = os.path.join(path, filename)
 
 
-        if type(result) == np.ndarray:
-            if result.ndim < 3:
+        if type(result) == np.ndarray or (type(result) == dict and type(result[list(result.keys())[0]]) == np.ndarray and (path.endswith('.npz') or path.endswith('.npy'))):
+            if type(result) == np.ndarray and result.ndim < 3:
                 np.savetxt(path, result)
             else:
-                np.save(path, result, allow_pickle=False)
+                if path.endswith('.npz'):
+                    np.savez_compressed(path, **result)
+                else:
+                    np.save(path, result, allow_pickle=False)
         
         elif type(result) == pd.DataFrame:
             result: pd.DataFrame
@@ -116,16 +119,12 @@ class ResultManager():
 
         if path.endswith('.npy'):
             result = np.load(path, allow_pickle=np_allow_pickle)
-        elif path.endswith('.yaml') or path.endswith('.yml'):
-            with open(path, 'rb') as f:
-                result = yaml.load(f, Loader=yaml.UnsafeLoader)
-        else:
             with open(path, 'rb') as f:
                result = dill.load(f)
 
         return result
 
-    def save_pdf(self, figs:list, filename:str, path:str=None):
+    def save_pdf(self, figs:list, filename:str, path:str=None, dpi=None):
         if path is None:
             path = self.root
         
@@ -134,7 +133,7 @@ class ResultManager():
         pdf = matplotlib.backends.backend_pdf.PdfPages(path)
 
         for fig in figs:
-            pdf.savefig(fig)
+            pdf.savefig(fig, dpi=dpi)
 
         pdf.close()
 
