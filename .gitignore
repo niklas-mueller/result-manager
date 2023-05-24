@@ -1,3 +1,6 @@
 result_manager/__pycache__
 
 result_manager.egg-info
+
+build
+build/*
