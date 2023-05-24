@@ -103,7 +103,7 @@ class ResultManager():
 
         self._print(f"Result successfully saved to {path}!")
 
-    def load_result(self, filename:str, path:str=None):
+    def load_result(self, filename:str, path:str=None, np_allow_pickle:bool=True):
 
         if path is None:
             path = self.root
@@ -115,7 +115,7 @@ class ResultManager():
             return None
 
         if path.endswith('.npy'):
-            result = np.load(path)
+            result = np.load(path, allow_pickle=np_allow_pickle)
         elif path.endswith('.yaml') or path.endswith('.yml'):
             with open(path, 'rb') as f:
                 result = yaml.load(f, Loader=yaml.UnsafeLoader)
