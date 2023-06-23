@@ -1,3 +1,4 @@
+import pickle
 import os
 import csv
 import dill
@@ -118,7 +119,16 @@ class ResultManager():
             return None
 
         if path.endswith('.npy'):
-            result = np.load(path, allow_pickle=np_allow_pickle)
+            try:
+                result = np.load(path, allow_pickle=np_allow_pickle)
+            except pickle.UnpicklingError as e:
+                result = np.loadtxt(path)
+
+
+        elif filename.endswith('.yml') or filename.endswith('yaml'):
+            with open(path, 'r') as stream:
+                result = yaml.load(stream=stream, Loader=yaml.UnsafeLoader)
+        else:
             with open(path, 'rb') as f:
                result = dill.load(f)
 
