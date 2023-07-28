@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import torch
 import yaml
+from PIL import Image
 
 class ResultManager():
     """
@@ -88,8 +89,11 @@ class ResultManager():
         elif type(result) == pd.DataFrame:
             result: pd.DataFrame
             pd.to_pickle(obj=result, filepath_or_buffer=path)
+
+        elif type(result) == Image.Image or filename.endswith('.png') or filename.endswith('.jpg'):
+            result.save(path)
         
-        elif filename.endswith('.yml') or filename.endswith('yaml'):
+        elif filename.endswith('.yml') or filename.endswith('.yaml'):
             with open(path, 'w') as stream:
                 yaml.dump(data=result, stream=stream)
         
@@ -123,6 +127,9 @@ class ResultManager():
                 result = np.load(path, allow_pickle=np_allow_pickle)
             except pickle.UnpicklingError as e:
                 result = np.loadtxt(path)
+
+        elif path.endswith('.png') or path.endswith('.jpg') or path.endswith('.jpeg') or path.endswith('.JPEG') or path.endswith('.JPG') or path.endswith('.tiff'):
+            result = Image.open(path)
 
 
         elif filename.endswith('.yml') or filename.endswith('yaml'):
